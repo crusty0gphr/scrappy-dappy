@@ -29,8 +29,7 @@ var links = &cobra.Command{
 		adapter := linksExtractor.New(client)
 		extractor := extractor.New(adapter)
 
-		err := extractor.Run(urls)
-		if err != nil {
+		if err := extractor.Run(urls); err != nil {
 			return errors.Wrap(err, ErrService)
 		}
 		return nil

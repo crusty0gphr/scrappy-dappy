@@ -2,6 +2,7 @@ package extractor
 
 import (
 	"fmt"
+	"github.com/intel-go/fastjson"
 	"sync"
 
 	"scrappy-dappy/internal/domain"
@@ -12,31 +13,36 @@ type LinksAdapter interface {
 }
 
 type Service struct {
-	adapter LinksAdapter
+	links LinksAdapter
 }
 
 func New(a LinksAdapter) *Service {
 	return &Service{
-		adapter: a,
+		links: a,
 	}
 }
 
 func (s Service) Run(websites []string) error {
 	var wg sync.WaitGroup
+	defer wg.Wait()
+
 	out := make(chan domain.Output)
 
 	for _, website := range websites {
 		wg.Add(1)
-		go s.adapter.Extract(website, &wg, out)
+		go s.links.Extract(website, &wg, out)
 	}
 
-	result := make([]domain.Output, 0)
+	result := make(domain.Output, 0)
 	for i := 0; i < len(websites); i++ {
-		v := <-out
-		result = append(result, v)
+		result = append(result, <-out...)
 	}
-	wg.Wait()
 
-	fmt.Println(result)
+	b, err := fastjson.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(b))
 	return nil
 }

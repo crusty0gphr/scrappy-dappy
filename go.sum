@@ -1,8 +1,8 @@
-github.com/766b/go-outliner v0.0.0-20180511142203-fc6edecdadd7 h1:cJXisB2yAM61AzMutv7X+KM8F3xVLxGH99S8VmaSlps=
-github.com/766b/go-outliner v0.0.0-20180511142203-fc6edecdadd7/go.mod h1:1SzhThoS5lcKfE4IFOLQJ04WCmFpaAiPe8H9yqXyYSU=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/inconshreveable/mousetrap v1.0.0 h1:Z8tu5sraLXCXIcARxBp/8cbvlwVa7Z1NHg9XEKhtSvM=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
+github.com/intel-go/fastjson v0.0.0-20170329170629-f846ae58a1ab h1:K7WJJ5AnrQV/6tEh0Qqs19KLzvsq5V15f9CifKii6aU=
+github.com/intel-go/fastjson v0.0.0-20170329170629-f846ae58a1ab/go.mod h1:xr9Svf97gkxlW+ZDxs47vReKp7m9EUzNhEGOLyBHR+8=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
