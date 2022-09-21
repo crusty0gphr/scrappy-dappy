@@ -1,5 +1,5 @@
 package cmd
 
 var (
-	ErrServiceError = "serviceError"
+	ErrService = "serviceError"
 )

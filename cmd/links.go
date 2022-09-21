@@ -1,16 +1,16 @@
 package cmd
 
 import (
-	linksAdapter "scrappy-dappy/internal/links"
+	linksExtractor "scrappy-dappy/internal/links"
 	"scrappy-dappy/internal/services/extractor"
-	linksClient "scrappy-dappy/pkg/links"
+	htmlClient "scrappy-dappy/pkg/html"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
 const (
-	flagExtract = "extract-links"
+	flagExtract = "extract"
 )
 
 var urls []string
@@ -25,13 +25,13 @@ var links = &cobra.Command{
 		// 	}
 		// }()
 
-		client := linksClient.New()
-		adapter := linksAdapter.New(client)
+		client := htmlClient.New()
+		adapter := linksExtractor.New(client)
 		extractor := extractor.New(adapter)
 
-		err := extractor.Run()
+		err := extractor.Run(urls)
 		if err != nil {
-			return errors.Wrap(err, ErrServiceError)
+			return errors.Wrap(err, ErrService)
 		}
 		return nil
 	},

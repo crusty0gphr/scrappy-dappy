@@ -1,7 +1,16 @@
 package links
 
+import (
+	"io"
+	"log"
+	"net/http"
+	"sync"
+
+	"scrappy-dappy/internal/domain"
+)
+
 type Links interface {
-	Extract(websites []string)
+	ExtractValue(body io.Reader, tag, attr string) []string
 }
 
 type Adapter struct {
@@ -14,6 +23,19 @@ func New(e Links) *Adapter {
 	}
 }
 
-func (a Adapter) Extract() error {
-	panic("fuck off! not implemented")
+func (a Adapter) Extract(url string, wg *sync.WaitGroup, out chan domain.Output) {
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// a.extractor.ExtractValue(resp.Body, "a", "href")
+	out <- domain.Output{
+		domain.OutputNode{
+			Website:    url,
+			Route:      "",
+			StatusCode: resp.StatusCode,
+		},
+	}
+	wg.Done()
 }
