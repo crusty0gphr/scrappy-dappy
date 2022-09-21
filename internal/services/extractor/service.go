@@ -1,11 +1,14 @@
 package extractor
 
 import (
-	"errors"
+	"fmt"
+	"sync"
+
+	"scrappy-dappy/internal/domain"
 )
 
 type LinksAdapter interface {
-	Extract() error
+	Extract(w string, wg *sync.WaitGroup, out chan domain.Output)
 }
 
 type Service struct {
@@ -18,7 +21,22 @@ func New(a LinksAdapter) *Service {
 	}
 }
 
-func (s Service) Run() error {
-	// panic("fuck off! not implemented")
-	return errors.New("err, fuck")
+func (s Service) Run(websites []string) error {
+	var wg sync.WaitGroup
+	out := make(chan domain.Output)
+
+	for _, website := range websites {
+		wg.Add(1)
+		go s.adapter.Extract(website, &wg, out)
+	}
+
+	result := make([]domain.Output, 0)
+	for i := 0; i < len(websites); i++ {
+		v := <-out
+		result = append(result, v)
+	}
+	wg.Wait()
+
+	fmt.Println(result)
+	return nil
 }
