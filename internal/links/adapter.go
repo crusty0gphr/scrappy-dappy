@@ -2,6 +2,7 @@ package links
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"sync"
 
@@ -25,6 +26,7 @@ func New(e Links) *Adapter {
 func (a Adapter) Extract(url string, wg *sync.WaitGroup, out chan domain.Output) {
 	defer wg.Done()
 
+	log.Printf("started extracting %s", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		out <- domain.Output{
@@ -48,16 +50,25 @@ func (a Adapter) Extract(url string, wg *sync.WaitGroup, out chan domain.Output)
 		},
 	)
 
+	var statusCode int
 	for _, link := range links {
-		r, err := http.Get(link)
+		// shadowed variables, same name but inside the different scope, so nothing to worry about :)
+		resp, err := http.Get(link)
+		if err != nil {
+			statusCode = http.StatusBadRequest
+		} else {
+			statusCode = resp.StatusCode
+		}
+
 		result = append(
 			result, domain.OutputNode{
 				Website:    url,
 				Route:      link,
-				StatusCode: r.StatusCode,
+				StatusCode: statusCode,
 				Err:        err,
 			},
 		)
 	}
 	out <- result
+	log.Printf("finished extracting %s", url)
 }
