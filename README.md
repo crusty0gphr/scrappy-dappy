@@ -1,2 +1,2 @@
 # Scrappy Dappy
-Webpage URL scrapper
+#### Webpage URL scrapper - please read carefully before use
