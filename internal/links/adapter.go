@@ -23,52 +23,43 @@ func New(e Links) *Adapter {
 	}
 }
 
-func (a Adapter) Extract(url string, wg *sync.WaitGroup, out chan domain.Output) {
+func (a Adapter) Extract(root string, wg *sync.WaitGroup, out chan domain.Output) {
 	defer wg.Done()
+	result := make(domain.Output, 0)
 
-	log.Printf("started extracting %s", url)
-	resp, err := http.Get(url)
-	if err != nil {
-		out <- domain.Output{
-			domain.OutputNode{
-				Website:    url,
-				Route:      url,
-				StatusCode: http.StatusBadRequest,
-				Err:        err,
-			},
-		}
+	log.Printf("started extracting %s", root)
+	o, body := a.ping(root)
+	o.Website = root
+	result = append(result, o)
+	if o.Err != nil {
+		out <- result
 		return
 	}
-
-	result := make(domain.Output, 0)
-	links := a.extractor.ExtractValueByAttrName(resp.Body, "a", "href")
-	result = append(
-		result, domain.OutputNode{
-			Website:    url,
-			Route:      url,
-			StatusCode: resp.StatusCode,
-		},
-	)
-
-	var statusCode int
+	links := a.extractor.ExtractValueByAttrName(body, "a", "href")
 	for _, link := range links {
-		// shadowed variables, same name but inside the different scope, so nothing to worry about :)
-		resp, err := http.Get(link)
-		if err != nil {
-			statusCode = http.StatusBadRequest
-		} else {
-			statusCode = resp.StatusCode
-		}
-
-		result = append(
-			result, domain.OutputNode{
-				Website:    url,
-				Route:      link,
-				StatusCode: statusCode,
-				Err:        err,
-			},
-		)
+		o, _ := a.ping(link)
+		o.Website = root
+		result = append(result, o)
 	}
 	out <- result
-	log.Printf("finished extracting %s", url)
+	log.Printf("finished extracting %s", root)
+}
+
+func (a Adapter) ping(url string) (domain.OutputNode, io.ReadCloser) {
+	var statusCode int
+	var body io.ReadCloser
+
+	resp, err := http.Get(url)
+	if err != nil {
+		statusCode = http.StatusBadRequest
+	} else {
+		statusCode = resp.StatusCode
+		body = resp.Body
+	}
+
+	return domain.OutputNode{
+		Route:      url,
+		StatusCode: statusCode,
+		Err:        err,
+	}, body
 }

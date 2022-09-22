@@ -35,7 +35,7 @@ tokenParser:
 				}
 				// avoid duplicates
 				if _, ok := draft[attribute.Val]; !ok && isUrl(attribute.Val) {
-					draft[attribute.Val] = struct{}{} // saving little space here, fot no reason... idk
+					draft[attribute.Val] = struct{}{} // saving little space here, for no reason... idk
 				}
 			}
 		}
