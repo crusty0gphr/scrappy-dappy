@@ -2,7 +2,6 @@ package links
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"sync"
 
@@ -10,7 +9,7 @@ import (
 )
 
 type Links interface {
-	ExtractValue(body io.Reader, tag, attr string) []string
+	ExtractValueByAttrName(body io.Reader, tag, attr string) []string
 }
 
 type Adapter struct {
@@ -24,18 +23,41 @@ func New(e Links) *Adapter {
 }
 
 func (a Adapter) Extract(url string, wg *sync.WaitGroup, out chan domain.Output) {
+	defer wg.Done()
+
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		out <- domain.Output{
+			domain.OutputNode{
+				Website:    url,
+				Route:      url,
+				StatusCode: http.StatusBadRequest,
+				Err:        err,
+			},
+		}
+		return
 	}
 
-	// a.extractor.ExtractValue(resp.Body, "a", "href")
-	out <- domain.Output{
-		domain.OutputNode{
+	result := make(domain.Output, 0)
+	links := a.extractor.ExtractValueByAttrName(resp.Body, "a", "href")
+	result = append(
+		result, domain.OutputNode{
 			Website:    url,
-			Route:      "",
+			Route:      url,
 			StatusCode: resp.StatusCode,
 		},
+	)
+
+	for _, link := range links {
+		r, err := http.Get(link)
+		result = append(
+			result, domain.OutputNode{
+				Website:    url,
+				Route:      link,
+				StatusCode: r.StatusCode,
+				Err:        err,
+			},
+		)
 	}
-	wg.Done()
+	out <- result
 }
