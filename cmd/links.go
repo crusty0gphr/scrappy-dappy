@@ -11,12 +11,10 @@ import (
 )
 
 const (
-	flagExtract      = "extract"
-	flagDepthLimiter = "depth"
+	flagExtract = "extract"
 )
 
 var urls []string
-var depth uint
 var links = &cobra.Command{
 	Use:           "links",
 	SilenceUsage:  true,
@@ -24,7 +22,7 @@ var links = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("Recovered. Error: %s", r)
+				log.Printf("Panic! - Error: %s", r)
 			}
 		}()
 
@@ -32,7 +30,7 @@ var links = &cobra.Command{
 		adapter := linksExtractor.New(client)
 		extractor := extractor.New(adapter)
 
-		if err := extractor.Run(urls, depth); err != nil {
+		if err := extractor.Run(urls); err != nil {
 			return errors.Wrap(err, ErrService)
 		}
 		return nil

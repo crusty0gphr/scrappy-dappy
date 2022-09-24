@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/intel-go/fastjson"
 	"log"
+	"net/http"
+	"strings"
 	"sync"
 
 	"scrappy-dappy/internal/domain"
@@ -23,17 +25,16 @@ func New(a LinksAdapter) *Service {
 	}
 }
 
-func (s Service) Run(websites []string, depth uint) error {
-	var layer uint
+func (s Service) Run(websites []string) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
 	log.Print("service started")
 	out := make(chan domain.Output)
+	result := make(domain.Output, 0)
 	defer close(out)
 
-	result := make(domain.Output, 0)
-	for layer <= depth {
+	for websites != nil {
 		for _, website := range websites {
 			wg.Add(1)
 			go s.links.Extract(website, &wg, out)
@@ -41,23 +42,29 @@ func (s Service) Run(websites []string, depth uint) error {
 		for i := 0; i < len(websites); i++ {
 			result = append(result, <-out...)
 		}
-		websites = s.outputToInput(result)
-		layer++
+		websites = s.outputToInput(websites, result)
 	}
 
-	b, err := fastjson.MarshalIndent(result, "", "  ")
+	jsonB, err := fastjson.MarshalIndent(result, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(b))
+	fmt.Println(string(jsonB))
 	log.Print("service finished")
 	return nil
 }
 
-func (s Service) outputToInput(o domain.Output) (res []string) {
-	for _, outputNode := range o {
-		res = append(res, outputNode.Route)
+func (s Service) outputToInput(w []string, o domain.Output) (res []string) {
+	for _, url := range w {
+		for _, outputNode := range o {
+			if outputNode.StatusCode != http.StatusOK ||
+				url == outputNode.Route ||
+				!strings.Contains(outputNode.Route, url) {
+				continue
+			}
+			res = append(res, outputNode.Route)
+		}
 	}
 	return
 }
