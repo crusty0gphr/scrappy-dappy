@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"sync"
 
 	"scrappy-dappy/internal/domain"
@@ -28,18 +29,21 @@ func (a Adapter) Extract(root string, wg *sync.WaitGroup, out chan domain.Output
 	result := make(domain.Output, 0)
 
 	log.Printf("started extracting %s", root)
-	o, body := a.ping(root)
-	o.Website = root
-	result = append(result, o)
-	if o.Err != nil {
+	node, body := a.ping(root)
+	node.Website = root
+	result = append(result, node)
+	if node.Err != nil {
 		out <- result
 		return
 	}
 	links := a.extractor.ExtractValueByAttrName(body, "a", "href")
 	for _, link := range links {
-		o, _ := a.ping(link)
-		o.Website = root
-		result = append(result, o)
+		if !a.isValidUrl(link) {
+			continue
+		}
+		node, _ := a.ping(link)
+		node.Website = root
+		result = append(result, node)
 	}
 	out <- result
 	log.Printf("finished extracting %s", root)
@@ -62,4 +66,9 @@ func (a Adapter) ping(url string) (domain.OutputNode, io.ReadCloser) {
 		StatusCode: statusCode,
 		Err:        err,
 	}, body
+}
+
+func (a Adapter) isValidUrl(s string) bool {
+	u, err := url.Parse(s)
+	return err == nil && u.Scheme != "" && u.Host != ""
 }
