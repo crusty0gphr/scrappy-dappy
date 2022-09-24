@@ -1,10 +1,8 @@
 package html
 
 import (
-	"io"
-	"net/url"
-
 	"golang.org/x/net/html"
+	"io"
 )
 
 type Client struct {
@@ -34,7 +32,7 @@ tokenParser:
 					continue
 				}
 				// avoid duplicates
-				if _, ok := draft[attribute.Val]; !ok && isUrl(attribute.Val) {
+				if _, ok := draft[attribute.Val]; !ok {
 					draft[attribute.Val] = struct{}{} // saving little space here, for no reason... idk
 				}
 			}
@@ -44,9 +42,4 @@ tokenParser:
 		output = append(output, key)
 	}
 	return
-}
-
-func isUrl(s string) bool {
-	u, err := url.Parse(s)
-	return err == nil && u.Scheme != "" && u.Host != ""
 }
