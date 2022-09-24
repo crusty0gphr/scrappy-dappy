@@ -37,7 +37,7 @@ func (s Service) Run(websites []string) error {
 	for websites != nil {
 		for _, website := range websites {
 			wg.Add(1)
-			go s.links.Extract(website, &wg, out)
+			go s.links.Extract(strings.TrimSpace(website), &wg, out)
 		}
 		for i := 0; i < len(websites); i++ {
 			result = append(result, <-out...)
