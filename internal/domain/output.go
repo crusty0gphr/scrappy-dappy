@@ -1,5 +1,17 @@
 package domain
 
+type OutputType string
+
+const (
+	OutputTypeConsole OutputType = "console"
+	OutputTypeJson    OutputType = "file"
+)
+
+var OutputTypes = map[OutputType]struct{}{
+	OutputTypeConsole: {},
+	OutputTypeJson:    {},
+}
+
 type Output []OutputNode
 
 type OutputNode struct {

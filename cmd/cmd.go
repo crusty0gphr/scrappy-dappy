@@ -16,6 +16,18 @@ func init() {
 		nil,
 		"extract links form the given websites.\nusage: --extract=\"https://example.com,https://example2.com\"",
 	)
+	links.PersistentFlags().StringVar(
+		&outputType,
+		flagOutput,
+		"console",
+		"result output type. Default: console",
+	)
+	links.PersistentFlags().StringVar(
+		&path,
+		flagPath,
+		"",
+		"path to put generated file. Default: <empty>",
+	)
 }
 
 func Execute() {

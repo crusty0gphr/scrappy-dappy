@@ -1,35 +1,46 @@
 package extractor
 
 import (
-	"fmt"
-	"github.com/intel-go/fastjson"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/pkg/errors"
 	"scrappy-dappy/internal/domain"
 )
 
-type LinksAdapter interface {
+var (
+	ErrInvalidOutputType = errors.New("invalid output type")
+)
+
+type LinksManager interface {
 	Extract(w string, wg *sync.WaitGroup, out chan domain.Output)
 }
 
-type Service struct {
-	links LinksAdapter
+type OutputManager interface {
+	Make(data domain.Output, path string, outputType domain.OutputType) (err error)
 }
 
-func New(a LinksAdapter) *Service {
+type Service struct {
+	links  LinksManager
+	output OutputManager
+}
+
+func New(l LinksManager, o OutputManager) *Service {
 	return &Service{
-		links: a,
+		links:  l,
+		output: o,
 	}
 }
 
-func (s Service) Run(websites []string) error {
+func (s Service) Run(websites []string, outputType, path string) error {
+	if _, ok := domain.OutputTypes[domain.OutputType(outputType)]; !ok {
+		return ErrInvalidOutputType
+	}
+
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	log.Print("service started")
 	out := make(chan domain.Output)
 	result := make(domain.Output, 0)
 	defer close(out)
@@ -45,14 +56,7 @@ func (s Service) Run(websites []string) error {
 		websites = s.outputToInput(websites, result)
 	}
 
-	jsonB, err := fastjson.MarshalIndent(result, "", "  ")
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(jsonB))
-	log.Print("service finished")
-	return nil
+	return s.output.Make(result, path, domain.OutputType(outputType))
 }
 
 func (s Service) outputToInput(w []string, o domain.Output) (res []string) {
