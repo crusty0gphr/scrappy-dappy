@@ -2,12 +2,11 @@ package extractor
 
 import (
 	"fmt"
-	"github.com/intel-go/fastjson"
-	"log"
 	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/intel-go/fastjson"
 	"scrappy-dappy/internal/domain"
 )
 
@@ -29,7 +28,6 @@ func (s Service) Run(websites []string) error {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
-	log.Print("service started")
 	out := make(chan domain.Output)
 	result := make(domain.Output, 0)
 	defer close(out)
@@ -51,7 +49,6 @@ func (s Service) Run(websites []string) error {
 	}
 
 	fmt.Println(string(jsonB))
-	log.Print("service finished")
 	return nil
 }
 
