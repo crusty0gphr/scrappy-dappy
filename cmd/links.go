@@ -2,9 +2,13 @@ package cmd
 
 import (
 	"log"
-	linksExtractor "scrappy-dappy/internal/links"
+
+	linksManager "scrappy-dappy/internal/links"
+	outputManager "scrappy-dappy/internal/output"
 	"scrappy-dappy/internal/services/extractor"
 	htmlClient "scrappy-dappy/pkg/html"
+	consoleClient "scrappy-dappy/pkg/output/console"
+	fileClient "scrappy-dappy/pkg/output/file"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -12,9 +16,13 @@ import (
 
 const (
 	flagExtract = "extract"
+	flagOutput  = "output"
+	flagPath    = "path"
 )
 
 var urls []string
+var outputType string
+var path string
 var links = &cobra.Command{
 	Use:           "links",
 	SilenceUsage:  true,
@@ -26,11 +34,16 @@ var links = &cobra.Command{
 			}
 		}()
 
-		client := htmlClient.New()
-		adapter := linksExtractor.New(client)
-		extractor := extractor.New(adapter)
+		linksManager := linksManager.New(
+			htmlClient.New(),
+		)
+		outputManager := outputManager.New(
+			consoleClient.New(),
+			fileClient.New(),
+		)
+		extractor := extractor.New(linksManager, outputManager)
 
-		if err := extractor.Run(urls); err != nil {
+		if err := extractor.Run(urls, outputType, path); err != nil {
 			return errors.Wrap(err, ErrService)
 		}
 		return nil

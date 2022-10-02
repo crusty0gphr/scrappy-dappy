@@ -2,6 +2,7 @@ package links
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -13,17 +14,17 @@ type Links interface {
 	ExtractValueByAttrName(body io.Reader, tag, attr string) []string
 }
 
-type Adapter struct {
+type Manager struct {
 	extractor Links
 }
 
-func New(e Links) *Adapter {
-	return &Adapter{
+func New(e Links) *Manager {
+	return &Manager{
 		extractor: e,
 	}
 }
 
-func (a Adapter) Extract(root string, wg *sync.WaitGroup, out chan domain.Output) {
+func (a Manager) Extract(root string, wg *sync.WaitGroup, out chan domain.Output) {
 	defer wg.Done()
 	result := make(domain.Output, 0)
 
@@ -34,6 +35,7 @@ func (a Adapter) Extract(root string, wg *sync.WaitGroup, out chan domain.Output
 		out <- result
 		return
 	}
+	a.log("extracting", root)
 	links := a.extractor.ExtractValueByAttrName(body, "a", "href")
 	for _, link := range links {
 		if !a.isValidUrl(link) {
@@ -46,7 +48,7 @@ func (a Adapter) Extract(root string, wg *sync.WaitGroup, out chan domain.Output
 	out <- result
 }
 
-func (a Adapter) ping(url string) (domain.OutputNode, io.ReadCloser) {
+func (a Manager) ping(url string) (domain.OutputNode, io.ReadCloser) {
 	var statusCode int
 	var body io.ReadCloser
 
@@ -65,7 +67,22 @@ func (a Adapter) ping(url string) (domain.OutputNode, io.ReadCloser) {
 	}, body
 }
 
-func (a Adapter) isValidUrl(s string) bool {
+func (a Manager) isValidUrl(s string) bool {
 	u, err := url.Parse(s)
 	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+func (a Manager) log(prefix, s string) {
+	const defaultLen = 65
+	const separator = "...."
+
+	var msg string
+	if len(s) > defaultLen {
+		msg = s[:40-3]
+		msg += separator
+		msg += s[len(s)-40:]
+	} else {
+		msg = s
+	}
+	log.Println(prefix, msg)
 }
