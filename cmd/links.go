@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"log"
-
 	linksManager "scrappy-dappy/internal/links"
 	outputManager "scrappy-dappy/internal/output"
 	"scrappy-dappy/internal/services/extractor"
@@ -28,11 +26,11 @@ var links = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("Panic! - Error: %s", r)
-			}
-		}()
+		//defer func() {
+		//	if r := recover(); r != nil {
+		//		log.Printf("Panic! - Error: %s", r)
+		//	}
+		//}()
 
 		linksManager := linksManager.New(
 			htmlClient.New(),

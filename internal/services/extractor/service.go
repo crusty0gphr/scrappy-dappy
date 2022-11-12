@@ -5,8 +5,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/pkg/errors"
 	"scrappy-dappy/internal/domain"
+
+	"github.com/pkg/errors"
 )
 
 var (

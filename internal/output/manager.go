@@ -30,7 +30,7 @@ func New(console Console, file File) *Manager {
 }
 
 func (m Manager) Make(data domain.Output, path string, outputType domain.OutputType) (err error) {
-	jsonB, err := fastjson.MarshalIndent(data, "", "  ")
+	jsonB, err := fastjson.Marshal(data)
 	if err != nil {
 		return err
 	}
