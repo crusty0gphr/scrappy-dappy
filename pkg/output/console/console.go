@@ -3,7 +3,6 @@ package console
 import (
 	"os"
 
-	"github.com/intel-go/fastjson"
 	"github.com/jedib0t/go-pretty/v6/table"
 )
 
@@ -11,14 +10,14 @@ var (
 	header = table.Row{"#", "website", "route", "status", "error"}
 )
 
-type data struct {
+type Node struct {
 	Website    string
 	Route      string
 	StatusCode int
 	Error      error
 }
 
-type input []data
+type Input []Node
 
 type Client struct {
 	t table.Writer
@@ -30,24 +29,23 @@ func New() *Client {
 	}
 }
 
-func (c *Client) Make(data string) error {
-	var r input
-	err := fastjson.Unmarshal([]byte(data), &r)
-	if err != nil {
-		return err
-	}
-
-	c.makeTable(r)
+func (c *Client) Make(in Input) error {
+	c.makeTable(in)
 	c.t.Render()
 	return nil
 }
 
-func (c *Client) makeTable(in input) {
+func (c *Client) makeTable(in Input) {
 	c.t.SetOutputMirror(os.Stdout)
 	c.t.AppendHeader(header)
 
 	for i, d := range in {
-		row := table.Row{i, d.Website, d.Route, d.StatusCode}
+		var errMsg string
+		if d.Error != nil {
+			errMsg = d.Error.(error).Error()
+		}
+
+		row := table.Row{i, d.Website, d.Route, d.StatusCode, errMsg}
 		c.t.AppendRow(row)
 		c.t.AppendSeparator()
 	}

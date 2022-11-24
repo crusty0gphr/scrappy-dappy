@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/google/uuid"
+	"github.com/intel-go/fastjson"
 	"github.com/pkg/errors"
 )
 
@@ -25,6 +26,15 @@ var supportedExtensions = map[string]struct{}{
 	extensionJson: {},
 }
 
+type Node struct {
+	Website    string
+	Route      string
+	StatusCode int
+	Error      error
+}
+
+type Input []Node
+
 type Client struct {
 }
 
@@ -32,7 +42,12 @@ func New() *Client {
 	return &Client{}
 }
 
-func (c Client) Make(data []byte, path, extension string) error {
+func (c Client) Make(in Input, path, extension string) error {
+	b, err := fastjson.MarshalIndent(in, "", "  ")
+	if err != nil {
+		return err
+	}
+
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return ErrInvalidPath
 	}
@@ -47,7 +62,7 @@ func (c Client) Make(data []byte, path, extension string) error {
 	name := uuid.New()
 	dir := fmt.Sprintf("%s/%s.%s", path, name, extension)
 
-	err := os.WriteFile(dir, data, perms)
+	err = os.WriteFile(dir, b, perms)
 	if err != nil {
 		return err
 	}
