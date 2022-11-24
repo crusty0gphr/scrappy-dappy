@@ -1,8 +1,9 @@
 package output
 
 import (
-	"github.com/intel-go/fastjson"
 	"scrappy-dappy/internal/domain"
+	"scrappy-dappy/pkg/output/console"
+	"scrappy-dappy/pkg/output/file"
 )
 
 const (
@@ -10,11 +11,11 @@ const (
 )
 
 type Console interface {
-	Make(data string) error
+	Make(in console.Input) error
 }
 
 type File interface {
-	Make(data []byte, path, extension string) error
+	Make(in file.Input, path, extension string) error
 }
 
 type Manager struct {
@@ -29,17 +30,41 @@ func New(console Console, file File) *Manager {
 	}
 }
 
-func (m Manager) Make(data domain.Output, path string, outputType domain.OutputType) (err error) {
-	jsonB, err := fastjson.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return err
-	}
-
+func (m Manager) Make(in domain.Output, path string, outputType domain.OutputType) (err error) {
 	switch outputType {
 	case domain.OutputTypeConsole:
-		err = m.console.Make(string(jsonB))
+		err = m.console.Make(
+			toConsoleInput(in),
+		)
 	case domain.OutputTypeJson:
-		err = m.file.Make(jsonB, path, FormatJSON)
+		err = m.file.Make(
+			toFileInput(in), path,
+			FormatJSON,
+		)
+	}
+	return
+}
+
+func toConsoleInput(in domain.Output) (out console.Input) {
+	for _, node := range in {
+		out = append(out, console.Node{
+			Website:    node.Website,
+			Route:      node.Route,
+			StatusCode: node.StatusCode,
+			Error:      node.Err,
+		})
+	}
+	return
+}
+
+func toFileInput(in domain.Output) (out file.Input) {
+	for _, node := range in {
+		out = append(out, file.Node{
+			Website:    node.Website,
+			Route:      node.Route,
+			StatusCode: node.StatusCode,
+			Error:      node.Err,
+		})
 	}
 	return
 }
