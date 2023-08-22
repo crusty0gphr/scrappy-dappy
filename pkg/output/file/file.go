@@ -27,10 +27,10 @@ var supportedExtensions = map[string]struct{}{
 }
 
 type Node struct {
+	Error      error
 	Website    string
 	Route      string
 	StatusCode int
-	Error      error
 }
 
 type Input []Node
