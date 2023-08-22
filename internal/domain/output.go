@@ -15,8 +15,8 @@ var OutputTypes = map[OutputType]struct{}{
 type Output []OutputNode
 
 type OutputNode struct {
+	Err        error  `json:"error,omitempty"`
 	Website    string `json:"website"`
 	Route      string `json:"route"`
 	StatusCode int    `json:"statusCode"`
-	Err        error  `json:"error,omitempty"`
 }
